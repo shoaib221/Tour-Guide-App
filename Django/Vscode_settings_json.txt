@@ -1,0 +1,8 @@
+{
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "files.autoSave": "onFocusChange",
+    "editor.formatOnSave": true,
+    "workbench.colorTheme": "Visual Studio Light",
+    "[python]": {},
+    "python.linting.pylintPath": "pylint-django"
+}

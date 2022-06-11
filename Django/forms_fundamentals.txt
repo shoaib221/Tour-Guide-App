@@ -1,0 +1,1 @@
+- modelforms checks whether the choicefield value is in the field's queryset
