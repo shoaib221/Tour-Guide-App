@@ -10,43 +10,30 @@
 {% block content_2 %}
 
 <br> <br>
-<div class="container">
-    <div class="row">
-        <div class="col-lg-2">
+<div>
+    <div>
+        <div>
 
         </div>
-        <div class="col-lg-8">
-            <div class="card searchbox" style="height: max-content;">
-                <h3 class="card-header" style="background: #232524; color: #FFFF;">Add Restaurant</h3>
-                <!-- <img src="user.jpg" style="align-self: center;" class="card-img img-thumbnail" alt="..."> -->
-                <div class="card-body">
-
+        <div >
+            <div>
+                <h3>Add Restaurant</h3>
+                <div>
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <!-- <table class="form_table"> -->
+                        
                         {{ form|crispy }}
                         <!-- </table> -->
                         <br>
                         <div class="text-right">
-                            <button type="submit" style="font-family: Ubuntu;" class="btn btn-info btn-lg">Add
-                                Restaurant</button>
-
+                            <button type="submit">Add Restaurant</button>
                         </div>
                     </form>
-
                 </div>
             </div>
-
         </div>
-        <div class="col-lg-2">
-
-        </div>
-
-
     </div>
-
 </div>
-<br> <br>
 
 <script id="load_city_ajax" load_city="/search/ajax/load_city/" load_residence="/search/ajax/load_city_residence/">
 

@@ -10,45 +10,33 @@
 {% block content_2 %}
 
 <br> <br>
-<div class="container">
-    <div class="row">
-        <div class="col-lg-2">
+<div>
+    <div>
+        <div>
 
         </div>
-        <div class="col-lg-8">
-            <div class="card searchbox" style="height: max-content;">
-                <h3 class="card-header" style="background: #232524; color: #FFFF;">Add Residence</h3>
-                <!-- <img src="user.jpg" style="align-self: center;" class="card-img img-thumbnail" alt="..."> -->
-                <div class="card-body">
-
+        <div>
+            <div>
+                <h3>Add Residence</h3>
+                <div>
                     <form id="form1" method="post" enctype="multipart/form-data" load-city="/search/ajax/load_city/"
                         novalidate>
                         {% csrf_token %}
-                        <!-- <table class="form_table"> -->
-                        {{ form|crispy }}
-                        <!-- </table> -->
-                        <br>
-                        <div class="text-right">
-                            <button type="submit" style="font-family: Ubuntu;" class="btn btn-info btn-lg">Add
-                                Residence</button>
-
+                        
+                        {{ form }}
+                        
+                        <div>
+                            <button type="submit">Add Residence</button>
                         </div>
                     </form>
 
                 </div>
             </div>
-
         </div>
-        <div class="col-lg-2">
-
-        </div>
-
-
     </div>
 
 </div>
 <br> <br>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
 <script>
     $("#id_country").change(function () {

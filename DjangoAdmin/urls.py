@@ -32,7 +32,7 @@ urlpatterns = [
     path('search/', include('search.urls')),
     path('permission_denied/', PermissionDenied.as_view(),
          name='permission denied'),
-    path('login_required/', LoginRequired.as_view()),
+    path('login_required/', LoginRequired.as_view())
 
 ]
 

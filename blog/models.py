@@ -10,7 +10,7 @@ from ckeditor.fields import RichTextField
 from ckeditor_uploader.fields import RichTextUploadingField
 from hitcount.models import HitCountMixin, HitCount
 from django.contrib.contenttypes.fields import GenericRelation
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 # Create your models here.
 
 

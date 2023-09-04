@@ -89,7 +89,8 @@ class MyLogin(views.View):
             return redirect('/home/')
         else:
             form = self.form_class()
-            return render(request, self.template_name, {"form": form})
+            print("hello from my login get")
+            return render(request, "login.html", {"form": form})
 
 
 def my_logout(request):
