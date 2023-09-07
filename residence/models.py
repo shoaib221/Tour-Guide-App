@@ -1,23 +1,23 @@
-from homepage.base import *
+
+
+
+from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from .views_1 import is_space_booked, make_space_unavailable, create_avail_space, is_space_available
-from homepage.models import UserDetail, City, Country, Address, MyChoice, Cart
-
+from accounts.models import UserDetail, City, Country, Address, MyChoice, Cart
+from django.db import models
 
 #####################################         Models           ########################################################
+
 
 class Residence(models.Model):
     user_detail = models.ForeignKey(UserDetail, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    country = models.ForeignKey(
-        Country, on_delete=models.SET_NULL, null=True, default=None)
-    city = models.ForeignKey(
-        City, on_delete=models.SET_NULL, null=True, default=None)
+    country = models.ForeignKey( Country, on_delete=models.SET_NULL, null=True, default=None)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, default=None)
     mobile = models.IntegerField(default=None, null=True, blank=True)
-    description = models.CharField(
-        max_length=255, null=True, blank=True, default=None)
-    img = models.ImageField(upload_to='ResidencePhoto',
-                            null=True, blank=True, default=None)
+    description = models.CharField(max_length=255, null=True, blank=True, default=None)
+    img = models.ImageField(upload_to='ResidencePhoto',null=True, blank=True, default=None)
 
     class Meta:
         pass

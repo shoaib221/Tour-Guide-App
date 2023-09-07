@@ -1,8 +1,8 @@
+import datetime
 from .models import Residence, Space, SpaceAvailable, SpaceType
-from homepage.base import *
-from homepage.models import Country, City
+from accounts.models import Country, City
 from .views_1 import load_flw_to_day, load_flw_from_day, load_flw_from_month, load_flw_to_month, load_flw_to_year, load_city_choice
-
+from django import forms
 
 class ResidenceForm(forms.ModelForm):
 

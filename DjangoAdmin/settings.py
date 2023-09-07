@@ -35,23 +35,19 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'blog.apps.BlogConfig',
+    
     'accounts.apps.AccountsConfig',
-    'guide.apps.GuideConfig',
-    'homepage.apps.HomepageConfig',
     'residence.apps.ResidenceConfig',
-    'restaurant.apps.RestaurantConfig',
+    'search.apps.SearchConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'search.apps.SearchConfig',
     'ckeditor',
     'ckeditor_uploader',
     'hitcount',
-
     'crispy_forms'
 ]
 
@@ -95,7 +91,7 @@ WSGI_APPLICATION = 'DjangoAdmin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'project_350',
+        'NAME': 'tour-guide-app',
         'USER': 'postgres',
         'PASSWORD': 'isthisyou',
         'HOST': 'localhost'

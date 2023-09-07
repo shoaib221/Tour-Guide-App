@@ -1,9 +1,15 @@
-from homepage.base import *
-from homepage.models import UserDetail
+
+from datetime import date
+import datetime
+from pyexpat.errors import messages
+from django.forms import ValidationError
+from django.shortcuts import render, redirect
+from accounts.models import UserDetail
 from .models import Space, SpaceAvailable, SpaceBooking, Residence, SpaceType, ResidenceOrder
 from .forms import SpaceForm, SpaceAvailabilityForm, ResidenceForm, CreateSpaceTypeForm, SpaceSearchForm, DateForm
 from .views_1 import is_space_booked, create_avail_space, load_date_from_DateForm, make_space_unavailable, \
 	make_space_unavailable_amap
+from django import views
 
 
 # Create your views here.
@@ -352,7 +358,7 @@ class UpdateSpace(views.View):
 						ob.save()
 						return redirect('/residence/space/{}/'.format(space.id))
 					except ValidationError as e:
-						nfe = e.message_dict[NON_FIELD_ERRORS]
+						nfe = e.message_dict['nfe']
 						return render(request, self.template_name, {'form': form, 'nfe': nfe, "space": space})
 				else:
 					messages.info(request, 'Invalid Credentials')
@@ -617,3 +623,4 @@ class ShowSpaceOrderDetail(views.View):
 				return redirect("/permission_denied/")
 		else:
 			return redirect("/login_required/")
+		

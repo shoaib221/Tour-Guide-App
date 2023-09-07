@@ -1,4 +1,7 @@
-from homepage.base import *
+from django import forms, views
+from django.shortcuts import render
+from datetime import datetime as dt
+from django.urls import path
 
 
 class DateForm(forms.Form):

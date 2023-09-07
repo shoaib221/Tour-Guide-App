@@ -1,6 +1,6 @@
+import datetime
 from django import forms
-from homepage.models import MyChoice, Country, City
-from homepage.base import *
+from accounts.models import MyChoice, Country, City
 from .first_view import load_city_choice, load_flw_from_day, load_flw_from_month, load_flw_to_day, load_flw_to_month, load_flw_to_year, load_residence_choice
 from residence.models import Residence
 
@@ -38,7 +38,7 @@ class SpaceSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        today = date.today()
+        today = datetime.date.today()
         year_choice = [("", "------------")]
         for i in range(datetime.today().year, datetime.today().year+5):
             year_choice += [(i, str(i))]

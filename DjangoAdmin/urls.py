@@ -17,23 +17,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from .views import PermissionDenied, LoginRequired
+from accounts.views import PermissionDenied, LoginRequired
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('homepage.urls')),
-    path('accounts/', include('accounts.urls')),
     path('residence/', include('residence.urls')),
-    path('restaurant/', include('restaurant.urls')),
-    path('guide/', include('guide.urls')),
     path('hitcount/', include(('hitcount.urls', 'hitcount'), namespace='hitcount')),
-    path('blog/', include('blog.urls')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('search/', include('search.urls')),
     path('permission_denied/', PermissionDenied.as_view(),
          name='permission denied'),
-    path('login_required/', LoginRequired.as_view())
-
+    path('login_required/', LoginRequired.as_view()),
+    path('', include('accounts.urls')),
 ]
 
 urlpatterns = urlpatterns + \

@@ -1,7 +1,11 @@
-from homepage.base import *
+
 
 
 #######################################          Complementary methods          ######################################
+
+
+from datetime import date, timedelta
+import datetime
 
 
 month_array = ['', 'January', 'February', 'March', 'April', 'May', 'June',
