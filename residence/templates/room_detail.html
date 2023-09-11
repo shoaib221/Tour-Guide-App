@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<title>Room Detail</title>
+{% endblock %}
+
+{% block others %}
+
+
+<div>
+
+    <h3>{{ room.name }}</h3>
+
+    <p> Beds : {{ room.beds }} </p>
+    <p> Price : {{ room.price }} </p>
+    <p> Description: {{ room.description }} </p>
+    <p>
+        House:
+        <a href="/residence/house/{{ room.house.id }}/">
+            <button> {{room.house.name}} </button>
+        </a>
+    </p>
+
+    <p>
+        Unavailabilities:
+        <ul>
+        {% for unavail in unavails  %}
+            <li>
+                From {{ unavail.from_day }} To {{ unavail.to_day }}
+                <a href="/residence/del_unavail/{{unavail.id}}/">
+                    <button>Delete</button>
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    </p>
+
+
+    <div>
+
+    {% if request.user.is_authenticated and space.residence.user_detail.username == request.username %}
+    <p>
+        <a href="/residence/room/{{ room.id }}/create_unavail/">
+            <button type="button">Create Unavailability</button>
+        </a>
+    </p>
+        
+        <p>
+            Orders:
+            {% for order in orders %}
+            <a href="/residence/order/{{ order.id }}/">
+                <button>Order  #{{order.id}} </button>
+            {% endfor %}
+        </p>
+
+        
+
+    {% endif %}
+
+</div>
+{% endblock %}

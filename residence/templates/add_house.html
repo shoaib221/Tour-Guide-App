@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block header %}
+<title> Add House </title>
+{% endblock %}
+
+{% block others %}
+
+<br> <br>
+
+        
+
+        <h3>Add House</h3>
+        <div>
+            <form id="form" method="post" enctype="multipart/form-data" load-city="/search/ajax/load_city/" novalidate>
+                {% csrf_token %}
+                
+                {{ form}}
+                
+                
+                <button type="submit">Add House</button>
+                
+            </form>
+        </div>
+               
+    
+
+
+<br> <br>
+
+<script>
+    $("#id_country").change(function () {
+
+        var url = $("#form1").attr("load-city");
+        var country_id = $(this).val();
+        // document.getElementById("hi").innerHTML = url;
+        $.ajax({
+            url: url,
+            data: { 'country': country_id },
+            success: function (hati) {
+                $("#id_city").html(hati);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,9 +1,12 @@
+
+
 from django.contrib import admin
-from .models import Residence, Space, SpaceAvailable, SpaceBooking
+from .models import House , Room, RoomUnavailable, RoomBooking, Booking
 
 
 # Register your models here.
-admin.site.register(Residence)
-admin.site.register(Space)
-admin.site.register(SpaceBooking)
-admin.site.register(SpaceAvailable)
+admin.site.register(House)
+admin.site.register(Room)
+admin.site.register(RoomBooking)
+admin.site.register(RoomUnavailable)
+admin.site.register(Booking)

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<title>My Bookings</title>
+{% endblock %}
+
+{% block others %}
+
+{% for order in orders %}
+
+<p>
+    <a href="/residence/order/{{ order.id }}/">
+        <button> Order #{{ order.id }} </button>
+    </a>
+</p>
+
+
+{% endfor %}
+
+{% endblock %}

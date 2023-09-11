@@ -1,5 +1,5 @@
 
-{% load crispy_forms_tags %}
+
 
 {% block header %}
 
@@ -19,23 +19,27 @@
                 </span>
             </div>
 
-            <form  method="POST">
+            <form  method="POST" enctype="multipart/form-data">
 
                 {% csrf_token %}
                 {{ form }}
 
                 <div">
-                    <button>
+                    <button type="submit">
                         Login
                     </button>
 
                 </div>
-                
-                <div>
-                    Don't Have an Account? &nbsp; <a href="/accounts/register/">Register!</a>
-                </div>
-
             </form>
+
+            <div>
+                <a href="/accounts/forgot_password/">
+                    Forgot Password?
+                </a>
+
+            <div>
+                Don't Have an Account? &nbsp; <a href="/accounts/register/">Register!</a>
+            </div>
 
         </div>
     </div>

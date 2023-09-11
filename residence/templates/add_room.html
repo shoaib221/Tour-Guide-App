@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block header %}
+<title>Add Room</title>
+{% endblock %}
+
+{% block others %}
+
+
+<div>
+    
+    <h3>{{ residence.name }}'s Space</h3>
+    
+    <div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- <table class="form_table"> -->
+            {{ form }}
+            
+            
+            <div>
+                <button type="submit">Confirm</button>
+            </div>
+        </form>
+        
+
+    </div>
+
+</div>
+<br> <br>
+
+{% endblock %}

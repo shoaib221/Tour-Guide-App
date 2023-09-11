@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% static "images" as statimgsrc %}
+{% block header %}
+<title> My House </title>
+{% endblock header %}
+
+
+{% block others %}
+<div>
+    
+    
+        <div>
+            
+                    <h3>My House</h3>
+                    <!-- <img src="user.jpg" style="align-self: center;" class="card-img img-thumbnail" alt="..."> -->
+                    <div>
+                        <br>
+                        
+                        {% for res in qs %}
+                        <p>
+                        <a href="/residence/house/{{ res.id }}/"><button>{{res.name}}</button></a>
+                        </p>
+                        {% endfor %}
+                        
+                        
+                        
+                        
+                        <a href="/residence/add_house/">
+                            <button>Add New House</button>
+                        </a>
+        
+    </div>
+    
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<title>House</title>
+{% endblock %}
+
+{% block others %}
+<div>
+    
+                    
+
+    <div>
+        
+        <h1>{{ house.name }}</h1>
+        <p>
+            <i></i> Owned By :&nbsp; <a href="/accounts/profile/{{ house.user_detail.id }}/">
+                <button> {{house.user_detail.name}} </button>  
+            </a>
+        </p>
+        <p><i >
+                {{ house.address }},
+                {{ house.city }}, {{ house.country }}.
+            </i></p>
+        <br>
+        <div>{{ house.description }} </div>
+        <br>
+        
+        
+        <br>
+        <div>
+            
+
+            {% if request.user.username == house.user_detail.username %}
+            <p>
+                <a href="/residence/house/{{ house.id }}/update/">
+                    <button type="button">Update</button>
+                </a>
+            </p>
+            
+            <p>
+                <a href="/residence/house/{{ house.id }}/addroom/"> 
+                    <button type="button">Add Room</button>
+                </a>
+            </p>
+
+
+            
+
+            <h3> Orders </h3>
+            <ul>
+            {% for order in orders %}
+            
+                <li>
+                    <p>
+                        <a href="/residence/order/{{ order.id }}/">
+                            <button>   {{order.id}}  </button>
+                        </a>
+                    </p>
+                </li>
+            
+            {% endfor %}
+
+
+
+            {% endif %}
+
+        </div>
+
+        <h3> Rooms </h3>
+        <ul>
+        {% for room in rooms %}
+        
+            <li>
+                <p>
+                    <a href="/residence/room/{{ room.id }}/">
+                        <button>   {{room.name}}  </button>
+                    </a>
+                </p>
+            </li>
+        
+        {% endfor %}
+        </ul>
+
+
+    <br> <br>
+</div>
+{% endblock %}

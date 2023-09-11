@@ -4,107 +4,70 @@
 <html lang="en">
 
 <head>
+{% block header %}
 
+{% endblock %}
 </head>
 
 <body>
 
-    <div class="titlebg">
+    {% block others %}
 
-        <nav >
-            
-            <a class="navbar-brand" href="/">
-                
-            
+    {% endblock %}
+
+
+
+
+    {% block base %}
+    <div>     
+    <br/> <br/>
             <div>
-                <ul>
-                    <li>
-                        <a  href="/search/space/">
-                            <p1>Residence</p1>
-                        </a>
-
-                    </li>
-                    <li>
-                        <a href="/search/restaurant/">
-                            <p1>Restaurants</p1>
-                        </a>
-
-                    </li>
-                    <li>
-                        <a href="/search/guide/">
-                            <p1>Guide</p1>
-                        </a>
-
-                    </li>
-                    <li>
-                        <a href="/blog/bloglist/">
-                            <p1>Blog</p1>
-                        </a>
-
-                    </li>
-                </ul>
-
-
-
-                <ul class="navbar-nav ml-auto">
+                
                     
                     {% if request.user.is_authenticated %}
-                    <li>
-                        <a href="#"  role="button">
-                            <button type="button" >
-                                <p2>Profile</p2>
-                            </button>
+                    <p>
+                    <a href="/accounts/my_profile/" >
+                        <button type="button"> {{ request.user.username }} </button>
+                    </a></p>
+                    
+                    <p>
+                        <a href="/accounts/home/">
+                            <button type="button"> Home </button>
                         </a>
-                        <div>
-                            <a  href="/profile/">View Profile</a>
-                            <a  href="/home/">My Feeds</a>
-                            <a  href="/restaurant/gotocart/">My Carts</a>
-                            <a  href="/my_orders/">My Orders</a>
-                            <a href="/accounts/logout/">Sign Out</a>
-                        </div>
-                    </li>
+                    </p>
+
+                    <p>
+                    <a href="/accounts/logout/">
+                        <button type="button" > Log Out </button>
+                    </a>
+                    </p>
+
                     {% else %}
 
 
-                    <li>
+                    <p>
                         <a href="/accounts/login/">
                             <button type="button" >
                                 <p2>Login</p2>
                             </button>
                         </a>
-                    </li>
+                    </p>
                     or
-                    <li>
+                    <p>
                         <a href="/accounts/register/">
                             <button type="button" >
                                 <p2>Register</p2>
                             </button>
                         </a>
-                    </li>
+                    </p>
 
                     {% endif %}
                     
-                </ul>
+                
             </div>
-        </nav>
     </div>
-
-
-
-
-
-
-
-    {% block content_2 %}
-
-    {% endblock content_2 %}
-
-
-    {% block body_op %}
 
     {% endblock %}
 
-
 </body>
-
 </html>

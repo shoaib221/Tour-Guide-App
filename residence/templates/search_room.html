@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+<title>Search Vacancy</title>
+
+{% endblock %}
+
+{% block others %}
+
+<form method="post" enctype="multipart/form-data">
+
+    {% csrf_token %}
+    {{ form }}
+
+
+    <button type="submit" >Search</button>
+
+</form>
+
+
+    {% for room in qs %}
+
+        <div>
+
+
+            <h3>{{ room.name }}</h3>
+            <p> Beds : {{ room.beds }} </p>
+            <p> Price : {{ room.price }} </p>
+            <p> Description: {{ room.description }} </p>
+
+            <p>
+                House:
+                <a href="/residence/house/{{ room.house.id }}/">
+                    <button> {{ room.house.name }} </button>
+                </a>
+            </p>
+
+            <p>
+                <a href="/residence/room/{{ room.id }}/">
+                    <button>View Room</button>
+                </a>
+            </p>
+
+            <p>
+                <button onClick="add_to_cart('{{room.id}}' )"  > Add To Cart </button>
+            </p>
+
+
+        </div>
+
+    {% endfor %}
+
+
+
+    <a href="/residence/go_to_cart/" >
+        <button> My Cart </button>
+    </a>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+
+
+        function add_to_cart( room_id ) {
+            
+            url = '/residence/add_to_cart/' + room_id + '/';
+            start_date = $('#id_from_year').val() + '-' + $('#id_from_month').val() + '-' + $('#id_from_day').val();
+            end_date = $('#id_to_year').val() + '-' + $('#id_to_month').val() + '-' + $('#id_to_day').val();
+            $.ajax({
+            url: url,
+            data: { 'start_date': start_date, 'end_date': end_date },
+            success: function (aha) {
+                alert(aha);
+            }
+        });
+        }
+    </script>
+
+
+
+
+{% endblock %}
+

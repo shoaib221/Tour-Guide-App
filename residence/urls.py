@@ -1,42 +1,24 @@
 
-from . import views
+
 from django.urls import path, include
+from . import views
 
 urlpatterns = [
-    # path('login/', login, name='login')
-    path('my_residence/', views.MyResidence.as_view(), name='my residence'),
-    path('add_residence/', views.AddResidence.as_view(), name='add residence'),
-    path('<int:id>/', views.ResidenceDetail.as_view(), name='residence detail'),
-    path('<int:id>/update/', views.UpdateResidence.as_view(),
-         name='update residence'),
-    path('<int:id>/delete/', views.DeleteResidence.as_view(),
-         name='delete residence'),
-    path('<int:id>/space/', views.ShowResidenceSpace.as_view(), name='show space'),
-    path('<int:id>/space/add_space/',
-         views.AddSpace.as_view(), name='add residence space'),
-    path("<int:id>/space_type/", views.ShowSpaceTypes.as_view()),
-    path("<int:residence_id>/create_space_type/",
-         views.CreateSpaceType.as_view()),
-    path("<int:residence_id>/orders/", views.ShowReceivedResidenceOrder.as_view()),
-    path('space/<int:space_id>/', views.SpaceDetail.as_view(), name='Space Detail'),
-    path('space/<int:space_id>/update/',
-         views.UpdateSpace.as_view(), name='Update Space'),
-    path('space/<int:space_id>/delete/',
-         views.DeleteSpace.as_view(), name='Delete Space'),
-    path('space/<int:space_id>/avail/',
-         views.CreateSpaceAvailability.as_view(), name='c_s_a'),
-    path("space/<int:space_id>/unavail/", views.MakeSpaceUnavailable.as_view()),
-    path("space/<int:space_id>/book/", views.BookSpace.as_view()),
-    path("space/<int:space_id>/availability/", views.ShowSpaceAvailability.as_view()),
-    path("ajax/", include("residence.ajax_handler")),
-    path("space_type/<int:space_type_id>/",
-         views.ShowSpaceTypeDetail.as_view()),
-    path("space_type/<int:space_type_id>/update/",
-         views.UpdateSpaceType.as_view()),
-    path("space_type/<int:space_type_id>/delete/",
-         views.DeleteSpaceType.as_view()),
-    path("book/", views.BookSpace.as_view()),
-    path("received_order/", views.ShowReceivedResidenceOrder.as_view()),
-    path("purchased_order/", views.ShowPurchasedOrder.as_view()),
-    path("order/<int:order_id>/", views.ShowSpaceOrderDetail.as_view())
+    
+    path( 'my_house/', views.MyHouse.as_view(), name='my residence'),
+    path( 'add_house/', views.AddHouse.as_view(), name='add residence'),
+    path( 'house/<int:id>/', views.HouseDetail.as_view(), name='residence detail'),
+    path( 'house/<int:id>/addroom/', views.AddRoom.as_view() , name='add room'),
+    path( 'room/<int:id>/', views.RoomDetail.as_view() , name='room detail'),
+    path( 'order/<int:id>/', views.OrderDetail.as_view() , name='order detail'),
+    path( 'room/<int:room_id>/create_unavail/', views.CreateUnavailability.as_view(), name='create room availability'),
+    path( 'del_unavail/<int:id>/', views.DeleteUnavailability.as_view(), name='room unavailabilities'),
+    path( 'search_vacancy/', views.SearchRoom.as_view(), name='search room'),
+    path( 'add_to_cart/<int:room_id>/', views.AddToCart.as_view(), name='search room detail'),
+    path( 'go_to_cart/', views.MyCart.as_view(), name='cart'),
+    path( 'book/', views.BookRooms.as_view(), name='book'),
+    path( 'my_booking/', views.MyBookings.as_view(), name='my booking'),
+
 ]
+
+

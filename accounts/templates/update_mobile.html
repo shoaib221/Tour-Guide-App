@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+
+{% block header %}
+
+<title>Update Name</title>
+
+{% endblock %}
+
+{% block others %}
+
+<h1>Update Name</h1>
+
+
+<div>
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ form }}
+        <br>
+        <div>
+            <button id="save" type="submit" >Save</button> 
+        </div>
+    </form>
+
+
+
+    <div>
+        <a href="/accounts/my_profile/"> <button>Cancel</button> </a>
+    </div>
+
+    
+
+</div>
+
+
+{% endblock %}
