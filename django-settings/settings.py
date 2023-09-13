@@ -74,7 +74,8 @@ DATABASES = {
         'NAME': 'tour-guide-app',
         'USER': 'postgres',
         'PASSWORD': 'isthisyou',
-        'HOST': 'localhost'
+        'HOST': '127.0.0.1',
+	'PORT': '5432'
     }
 }
 
