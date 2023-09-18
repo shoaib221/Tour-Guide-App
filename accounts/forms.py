@@ -16,7 +16,7 @@ class CreateUserForm(forms.ModelForm):
 
     class Meta:
         model = UserDetail
-        fields = [ 'username', 'mail', 'mobile', 'name', 'country', 'nid', 'password' ]
+        fields = [ 'mail', 'mobile', 'country', 'nid', 'password' ]
         labels = {'mobile': 'Mobile NO', 'nid': 'National ID', 'mail': 'Email Address', 'name': 'Name' }
         widgets = {
             'password': forms.PasswordInput(),

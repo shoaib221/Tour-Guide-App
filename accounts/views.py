@@ -3,6 +3,7 @@ from django import views
 from django.contrib import messages, auth
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User, auth
+from django.forms import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -66,9 +67,14 @@ class MyRegister(views.View):
                 else:
                     current_user_detail = form.save(commit=False)
                     current_user_detail.password = make_password( password )
-                    current_user_detail.save()
-                    login(request, current_user_detail )
-                    return redirect('/accounts/home/')
+                    try:
+                        current_user_detail.save()
+                        login(request, current_user_detail )
+                        return redirect('/accounts/home/')
+                    except ValidationError as e:
+                        for k in e:
+                            form.add_error(k, e[k])
+                        return render(request, self.template_name, {'form': form })
                 
                 return render(request, self.template_name, {'form': form })
             else:
