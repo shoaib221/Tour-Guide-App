@@ -1,5 +1,6 @@
 
 
+from ctypes import sizeof
 from datetime import date
 import datetime
 from pyexpat.errors import messages
@@ -128,10 +129,18 @@ class RoomDetail(views.View):
 		if request.user.is_authenticated:
 			print("room_detail")
 			room = Room.objects.get(id=id)
-			unavail = RoomUnavailable.objects.filter(room=room)
-			return render(request, self.template_name, {'room': room, 'unavails': unavail })
+			unavail = RoomUnavailable.objects.filter(room=room, booked=False).order_by("from_day")
+			bookings =  RoomBooking.objects.filter(room_id=id)
+			qs = []
+			for x in bookings:
+				qs.append(x.booking)
+
+			print( len( bookings ) )
+
+			context = {'room': room, 'unavails': unavail, 'bookings': qs }
+			return render(request, self.template_name, context )
 		else:
-			messages.info(request, 'Log in First')
+			request.message.info('Log in First')
 			return redirect('/accounts/')
 
 		
@@ -165,7 +174,7 @@ class CreateUnavailability(views.View):
 				form = self.form_class(request.POST or None)
 				if form.is_valid():
 					from_date, to_date = pre_view.load_date_from_DateForm(form)
-					new_unavail = RoomUnavailable( room=room, from_day=from_date, to_day=to_date, house=room.house )  
+					new_unavail = RoomUnavailable( room=room, from_day=from_date, to_day=to_date, house=room.house, booked=False )  
 					try:
 						new_unavail.full_clean()
 						new_unavail.save()
@@ -328,13 +337,25 @@ class BookRooms(views.View):
 			try:
 				booking.full_clean()
 				booking.save()
+				temp = []
 				for x in rows:
 					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price )
 					try:
 						room_booking.full_clean()
 						room_booking.save()
+						temp.append(room_booking)
 					except ValidationError as e:
+						for t in temp:
+							t.delete()
 						return render(request, 'message.html', {'message': 'failed'} )
+				
+				for x in rows:
+					new_unavail = RoomUnavailable( room=x.room, from_day=start_date, to_day=end_date, house=x.room.house, booked=True  ) 
+					new_unavail.save()
+				
+				cart_elements = Cart.objects.filter(user_detail__username=request.user.username)
+				for x in cart_elements:
+					x.delete()
 				return redirect("/residence/my_booking/")
 			
 			except ValidationError as e:
@@ -351,22 +372,27 @@ class MyBookings(views.View):
 	
 	def get(self, request):
 		if request.user.is_authenticated:
-			orders = Booking.objects.filter(guest__username=request.user.username).order_by("-booking_time")
-			return render(request, self.template_name, {"orders": orders})
+			bookings = Booking.objects.filter(guest__username=request.user.username).order_by("-booking_time")
+			return render(request, self.template_name, {"orders": bookings})
 		else:
 			messages.info(request, 'You must log in first')
 			return redirect("/accounts/")
 
 
 
-class OrderDetail(views.View):
-	template_name = "order_detail.html"
-	
+class BookingDetail(views.View):
+
+	template_name = "booking_detail.html"
+
 	def get(self, request, id):
 		if request.user.is_authenticated:
-			order = Booking.objects.get(id=id)
-			if order.guest.username == request.user.username :
-				return render(request, self.template_name, {"order": order})
+			booking = Booking.objects.get(id=id)
+			if booking.guest.username == request.user.username or booking.house.user_detail.username == request.user.username :
+				qs = RoomBooking.objects.filter(booking_id=id)
+				rooms = []
+				for x in qs:
+					rooms.append(x.room)
+				return render(request, self.template_name, { "booking": booking, "rooms": rooms })
 			else:
 				return redirect("/accounts/")
 		else:

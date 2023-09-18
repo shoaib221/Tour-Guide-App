@@ -14,7 +14,7 @@
         <h1>{{ house.name }}</h1>
         <p>
             <i></i> Owned By :&nbsp; <a href="/accounts/profile/{{ house.user_detail.id }}/">
-                <button> {{house.user_detail.name}} </button>  
+                <button> {{house.user_detail.username}} </button>  
             </a>
         </p>
         <p><i >
@@ -46,14 +46,14 @@
 
             
 
-            <h3> Orders </h3>
+            <h3> Bookings </h3>
             <ul>
             {% for order in orders %}
             
                 <li>
                     <p>
                         <a href="/residence/order/{{ order.id }}/">
-                            <button>   {{order.id}}  </button>
+                            <button> Booking  #{{order.id}}  </button>
                         </a>
                     </p>
                 </li>

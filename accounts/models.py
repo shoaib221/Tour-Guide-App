@@ -34,7 +34,6 @@ class UserDetail(User):
     country = models.ForeignKey( Country , on_delete=models.CASCADE, blank=False)
     nid = models.CharField(max_length=20, blank=False)
     mobile = models.BigIntegerField(blank=False)
-    name = models.CharField(max_length=255, blank=False)
 
     class Meta:
         constraints = [

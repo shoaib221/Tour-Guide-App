@@ -69,6 +69,7 @@ class RoomUnavailable(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     from_day = models.DateField()
     to_day = models.DateField()
+    booked = models.BooleanField(default=False, blank=False)
 
     class Meta:
         ordering = ["room", "from_day"]

@@ -38,7 +38,7 @@
 
     <div>
 
-    {% if request.user.is_authenticated and space.residence.user_detail.username == request.username %}
+    {% if request.user.is_authenticated and room.house.user_detail.username == request.user.username %}
     <p>
         <a href="/residence/room/{{ room.id }}/create_unavail/">
             <button type="button">Create Unavailability</button>
@@ -46,11 +46,17 @@
     </p>
         
         <p>
+            <ul>
             Orders:
-            {% for order in orders %}
-            <a href="/residence/order/{{ order.id }}/">
-                <button>Order  #{{order.id}} </button>
+            {% for booking in bookings %}
+
+            <li>
+            <a href="/residence/order/{{ booking.id }}/">
+                <button>Order  #{{booking.id}} </button>
+
+            </li>
             {% endfor %}
+        </ul>
         </p>
 
         

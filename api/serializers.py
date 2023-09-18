@@ -11,7 +11,7 @@ class HouseSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetail
-        fields = [ 'mail', 'mobile', 'nid', 'country' ]
+        fields = [ 'mail', 'mobile', 'nid', 'country', 'password' ]
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:

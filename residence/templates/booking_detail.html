@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block others %}
+
+    <p> Guest {{ booking.guest.username }} </p>
+    <p> House {{ booking.house.name }} </p>
+
+    From {{ booking.book_from }} to {{ booking.book_to }}
+    <p>
+    Rooms
+    <ul>
+
+        {% for room in rooms %}
+
+            <li>  {{ room.name }} </li>
+
+        {% endfor %}
+
+    </ul>
+    </p>
+
+{% endblock %}
