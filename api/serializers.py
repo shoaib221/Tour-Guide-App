@@ -13,6 +13,10 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = UserDetail
         fields = [ 'mail', 'mobile', 'nid', 'country', 'password' ]
 
+class LoginSerializer(serializers.Serializer):
+    mail = serializers.CharField( required=True )
+    password = serializers.CharField( required=True )
+
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country

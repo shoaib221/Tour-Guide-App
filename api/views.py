@@ -2,16 +2,18 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from residence.models import House
+from residence.models import *
 from .serializers import *
-from accounts.models import UserDetail, Country
+from accounts.models import *
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import login, authenticate, logout
 
 ###########################################  accounts  ###########################################
 
 class MyRegister(APIView):
 
     def get(self, request):
-        
+        #print( request.data )
         serializer = UserDetailSerializer()
         qs = Country.objects.all()
         country_serializer = CountrySerializer(qs, many=True)
@@ -23,21 +25,139 @@ class MyRegister(APIView):
 
     def post(self, request):
         serializer = UserDetailSerializer(data=request.data)
+        #print(request.data)
+        #print(serializer.data)
 
         if serializer.is_valid():
-            print("valid")
-            user_detail = serializer.save(commit=False)
-            user_detail.username = user_detail.mail
-            try:
-                serializer.save()
-                return Response({'message': 'User Created'}, status=status.HTTP_201_CREATED)
-            except ValidationError as e:
-                for msg in e:
-                    serializer.add_error(msg, e[msg])
-                return Response( serializer , status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            user_detail = UserDetail()
+            user_detail.username = serializer.validated_data['mail']
+            user_detail.country = serializer.validated_data['country']
+            user_detail.nid = serializer.validated_data['nid']
+            user_detail.mobile = serializer.validated_data['mobile']
+            user_detail.mail = serializer.validated_data['mail']
+            user_detail.password = make_password( serializer.validated_data['password'] )
 
-# Create your views here.
+            #print(serializer.validated_data)
+            #print(serializer.data)
+            #print(user_detail.password)
+
+            try:
+                user_detail.full_clean()
+                user_detail.save()
+                context = {
+                    'message': 'successfully registered',
+                    'serializer': serializer.data
+                }
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except ValidationError as ve:
+                context = {
+                    'errors': ve.message_dict,
+                    'serializer': serializer.data
+                }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+        else:
+            context={
+                'errors': serializer.errors,
+                'serializer': serializer.data
+            }
+            return Response(context , status=status.HTTP_400_BAD_REQUEST)
+        
+
+class MyLogin(APIView):
+
+    template_name = "login.html"
+    form_class = LoginSerializer
+
+    def post(self, request):
+        
+        if request.user.is_authenticated:
+            context = {
+                'message': 'Already logged in'
+            }
+            return Response( context , status=status.HTTP_200_OK)
+        
+        else:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                mail = serializer.validated_data['mail']
+                password = serializer.validated_data['password']
+                user = UserDetail.objects.get(mail=mail)
+                if user is None:
+                    
+                    context = {
+                        'message': 'No such user, Regester',
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+                
+                elif check_password(password, user.password):
+                    login(request, user)
+                    context = {
+                        'message': 'Successfully logged in',
+                    }
+                    return Response(context, status=status.HTTP_200_OK)
+
+                else:
+                    context = {
+                        'message': 'Incorrect Password',
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                context = {
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response( context , status=status.HTTP_200_OK)
+            
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            context = {
+                'message': 'Already logged in'
+            }
+            return Response( context , status=status.HTTP_200_OK)
+        else:
+            #print(request.data)
+            #print(request.user)
+            serializer = LoginSerializer()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyLogout(APIView):
+        
+        def get(self, request):
+
+            if request.user.is_authenticated:
+                logout(request)
+                context = {
+                    'message': 'Successfully logged out'
+                }
+                return Response(context, status=status.HTTP_200_OK)
+            else:
+                context = {
+                    'message': 'Already logged out'
+                }
+                return Response(context, status=status.HTTP_200_OK)
+            
+
+        def post(self, request):
+
+            if request.user.is_authenticated:
+                logout(request)
+                context = {
+                    'message': 'Successfully logged out'
+                }
+                return Response(context, status=status.HTTP_200_OK)
+            else:
+                context = {
+                    'message': 'Already logged out'
+                }
+                return Response(context, status=status.HTTP_200_OK)
+        
+        
+
 
 '''
 
@@ -180,36 +300,6 @@ class MyProfile(views.View):
             return redirect('/accounts/')
 
 
-class MyLogin(views.View):
-    template_name = "login.html"
-    form_class = LoginForm
-
-    def post(self, request):
-        if request.user.is_authenticated:
-            return redirect('/accounts/home/')
-        else:
-            form = self.form_class(request.POST or None)
-            if form.is_valid():
-                username = form.cleaned_data["username"]
-                password = form.cleaned_data["password"]
-                current_user = authenticate(request, username=username, password=password)
-                # print(type(current_user))
-                if current_user is None:
-                    form.add_error("__all__", 'Invalid username or password')
-                    return render(request, self.template_name, {"form": form})
-                else:
-                    login(request, current_user)
-                    return redirect('/accounts/home/')
-            else:
-                return render(request, self.template_name, {"form": form})
-
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('/accounts/home/')
-        else:
-            form = self.form_class()
-            print("hello from my login get")
-            return render(request, "login.html", {"form": form})
         
 class ForgotPassword(views.View):
     
@@ -220,15 +310,7 @@ class ForgotPassword(views.View):
         aha=0
 
 
-class MyLogout(views.View):
-        
-        def get(self, request):
 
-            if request.user.is_authenticated:
-                logout(request)
-                return redirect('/accounts/')
-            else:
-                return redirect('/accounts/')
             
 
 class ShowProfileDetail(views.View):

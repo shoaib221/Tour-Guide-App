@@ -13,8 +13,7 @@ urlpatterns = [
     path("update_name/", views.UpdateName.as_view() ),
     path("update_mail/", views.UpdateEmail.as_view() ),
     path("update_mobile/", views.UpdateMobile.as_view() ),
-    path( "", views.MyLogin.as_view()    ),
-    path( "change_password/", views.ChangePassword.as_view()    ),
+    path( "", views.MyLogin.as_view() ),
+    path( "change_password/", views.ChangePassword.as_view() ),
     path( "forgot_password/", views.ForgotPassword.as_view(), name='forgot password'),
-    
 ]
