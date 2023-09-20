@@ -18,15 +18,15 @@ class Country(models.Model):
 class City(models.Model):
 
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    city = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint( fields=['country', 'city'], name='unique city')
+            models.UniqueConstraint( fields=['country', 'name'], name='unique city')
         ]
         
     def __str__(self):
-        return self.city
+        return self.name + ', ' + self.country.name
 
 
 class UserDetail(User):

@@ -19,7 +19,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 class MyHome(views.View):
     template_name = "home.html"
-
+    
     def get(self, request):
         if request.user.is_authenticated:
             return render(request, self.template_name)
@@ -41,18 +41,18 @@ class MyRegister(views.View):
 
     def post(self, request):
 
-        
         form = self.form_temp(request.POST, request.FILES)
         if request.user.is_authenticated:
             return redirect('/accounts/home/')
         else:
             if form.is_valid() :
-                username = form.cleaned_data['username']
+                username = form.cleaned_data['mail']
                 password = form.cleaned_data['password']
                 confirm_password = form.cleaned_data['confirm_password']
                 mail = form.cleaned_data['mail']
                 mobile = form.cleaned_data['mobile']
                 nid = form.cleaned_data['nid']
+                country = form.cleaned_data['country']
 
                 if password != confirm_password:
                     form.add_error("__all__", 'Passwords not matching')
@@ -65,9 +65,15 @@ class MyRegister(views.View):
                 elif UserDetail.objects.filter(nid=nid).exists():
                     form.add_error("nid", 'NID already taken')
                 else:
-                    current_user_detail = form.save(commit=False)
+                    current_user_detail = UserDetail()
+                    current_user_detail.username = username
+                    current_user_detail.mail = mail
+                    current_user_detail.mobile = mobile
+                    current_user_detail.nid = nid
+                    current_user_detail.country = country
                     current_user_detail.password = make_password( password )
                     try:
+                        current_user_detail.full_clean()
                         current_user_detail.save()
                         login(request, current_user_detail )
                         return redirect('/accounts/home/')

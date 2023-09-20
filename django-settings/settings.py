@@ -18,6 +18,12 @@ import os
 
 # Application definition
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
 INSTALLED_APPS = [
     'crispy_forms',
     'residence.apps.ResidenceConfig',

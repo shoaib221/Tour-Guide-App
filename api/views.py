@@ -1,4 +1,4 @@
-from django.shortcuts import render
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,61 +8,89 @@ from accounts.models import *
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate, logout
 
+class Test(APIView):
+
+    def get(self, request):
+        return Response( { 'message': 'Hello Get test' } , status=status.HTTP_200_OK )
+    
+    def post(self, request):
+        return Response( { 'message': 'Hello Post test' } , status=status.HTTP_200_OK )
+    
+    def put(self, request):
+        return Response( { 'message': 'Hello Put test' } , status=status.HTTP_200_OK )
+
+
 ###########################################  accounts  ###########################################
+
+
 
 class MyRegister(APIView):
 
     def get(self, request):
-        #print( request.data )
-        serializer = UserDetailSerializer()
-        qs = Country.objects.all()
-        country_serializer = CountrySerializer(qs, many=True)
-        context = {
-            'user_detail': serializer.data,
-            'country': country_serializer.data
-        }
-        return Response(context)
+        if request.user.is_authenticated:
+            context = {
+                'message': 'Already Registered'
+            }
+            return Response( context , status=status.HTTP_200_OK)
+        else:
+            serializer = UserDetailSerializer()
+            qs = Country.objects.all()
+            country_serializer = CountrySerializer(qs, many=True)
+            context = {
+                'user_detail': serializer.data,
+                'country': country_serializer.data
+            }
+            return Response(context , status=status.HTTP_200_OK )
 
     def post(self, request):
-        serializer = UserDetailSerializer(data=request.data)
-        #print(request.data)
-        #print(serializer.data)
 
-        if serializer.is_valid():
-            user_detail = UserDetail()
-            user_detail.username = serializer.validated_data['mail']
-            user_detail.country = serializer.validated_data['country']
-            user_detail.nid = serializer.validated_data['nid']
-            user_detail.mobile = serializer.validated_data['mobile']
-            user_detail.mail = serializer.validated_data['mail']
-            user_detail.password = make_password( serializer.validated_data['password'] )
-
-            #print(serializer.validated_data)
-            #print(serializer.data)
-            #print(user_detail.password)
-
-            try:
-                user_detail.full_clean()
-                user_detail.save()
-                context = {
-                    'message': 'successfully registered',
-                    'serializer': serializer.data
-                }
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except ValidationError as ve:
-                context = {
-                    'errors': ve.message_dict,
-                    'serializer': serializer.data
-                }
-                return Response(context, status=status.HTTP_400_BAD_REQUEST)
-            
-        else:
-            context={
-                'errors': serializer.errors,
-                'serializer': serializer.data
+        if request.user.is_authenticated:
+            context = {
+                'message': 'Already Registered'
             }
-            return Response(context , status=status.HTTP_400_BAD_REQUEST)
+            return Response( context , status=status.HTTP_200_OK)
         
+        else:
+
+            serializer = UserDetailSerializer(data=request.data)
+            #print(request.data)
+            #print(serializer.data)
+
+            if serializer.is_valid():
+                user_detail = UserDetail()
+                user_detail.username = serializer.validated_data['mail']
+                user_detail.country = serializer.validated_data['country']
+                user_detail.nid = serializer.validated_data['nid']
+                user_detail.mobile = serializer.validated_data['mobile']
+                user_detail.mail = serializer.validated_data['mail']
+                user_detail.password = make_password( serializer.validated_data['password'] )
+
+                #print(serializer.validated_data)
+                #print(serializer.data)
+                #print(user_detail.password)
+
+                try:
+                    user_detail.full_clean()
+                    user_detail.save()
+                    context = {
+                        'message': 'successfully registered',
+                        'serializer': serializer.data
+                    }
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                except ValidationError as ve:
+                    context = {
+                        'errors': ve.message_dict,
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+                
+            else:
+                context={
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response(context , status=status.HTTP_400_BAD_REQUEST)
+            
 
 class MyLogin(APIView):
 
@@ -142,23 +170,124 @@ class MyLogout(APIView):
                 return Response(context, status=status.HTTP_200_OK)
             
 
-        def post(self, request):
+class MyProfile(APIView):
 
-            if request.user.is_authenticated:
-                logout(request)
-                context = {
-                    'message': 'Successfully logged out'
-                }
-                return Response(context, status=status.HTTP_200_OK)
+    def get( self, request ):
+        if request.user.is_authenticated:
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            serializer = MyProfileSerializer(user_detail)
+            context = {'user_detail': serializer.data}
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        
+
+class ShowProfileDetail(APIView):
+
+    def get(self, request, user_id):
+
+        if request.user.is_authenticated:
+            user_detail = UserDetail.objects.get(id=user_id)
+            if user_detail is None:
+                return Response( { "message": "No such user" } ,status=status.HTTP_400_BAD_REQUEST)
+            serializer = MyProfileSerializer(user_detail)
+            context = {'user_detail': serializer.data}
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+
+
+
+#######################################  house  #############################################
+
+class MyHouse(APIView):
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            qs = House.objects.filter( user_detail__username=request.user.username )
+            serializer = HouseSerializer(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        
+
+        
+class AddHouse(APIView) :
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            serializer = HouseSerializer()
+
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            cities = City.objects.filter( country = user_detail.country )
+            cs = CitySerializer(cities, many=True)
+            context = {
+                'serializer': serializer.data,
+                'cities': cs.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        if request.user.is_authenticated:
+            serializer = HouseSerializer(data=request.data)
+
+            if serializer.is_valid():
+                
+                user_detail = UserDetail.objects.get(username=request.user.username)
+
+                house = House()
+                house.user_detail = user_detail
+                house.name = serializer.validated_data['name']
+                house.address = serializer.validated_data['address']
+                house.city = serializer.validated_data['city']
+                house.country = serializer.validated_data['country']
+                house.description = serializer.validated_data['description']
+
+
+                try:
+                    house.full_clean()
+                    house.save()
+                    context = {
+                        'message': 'successfully created',
+                        'serializer': serializer.data
+                    }
+                    return Response(context , status=status.HTTP_201_CREATED)
+                except ValidationError as e:
+                    context = {
+                        'errors': e.message_dict,
+                        'serializer': serializer.data
+                    }
+                    return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                
             else:
                 context = {
-                    'message': 'Already logged out'
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
                 }
-                return Response(context, status=status.HTTP_200_OK)
-        
-        
+                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
 
 
+
+#########################  Room          #########################################
 '''
 
 class AllHouse(APIView):
@@ -221,61 +350,7 @@ class MyHome(views.View):
             return render(request, self.template_name)
         else:
             return redirect('/accounts/login/')
-
-
-class MyRegister(views.View):
-    template_name = "register.html"
-    form_temp = CreateUserForm
-
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('/accounts/home/')
-        else:
-            form = self.form_temp()
-            print("hello from my register get")
-            return render(request, "register.html", { "form": form })
-
-    def post(self, request):
-
-        
-        form = self.form_temp(request.POST, request.FILES)
-        if request.user.is_authenticated:
-            return redirect('/accounts/home/')
-        else:
-            if form.is_valid() :
-                username = form.cleaned_data['username']
-                password = form.cleaned_data['password']
-                confirm_password = form.cleaned_data['confirm_password']
-                mail = form.cleaned_data['mail']
-                mobile = form.cleaned_data['mobile']
-                nid = form.cleaned_data['nid']
-
-                if password != confirm_password:
-                    form.add_error("__all__", 'Passwords not matching')
-                elif UserDetail.objects.filter(mail=mail).exists():
-                    form.add_error("mail", 'Email Address Taken')
-                elif UserDetail.objects.filter(username=username).exists():
-                    form.add_error("username", 'Username Taken')
-                elif UserDetail.objects.filter(mobile=mobile).exists():
-                    form.add_error("mobile", 'Mobile Numbet Taken')
-                elif UserDetail.objects.filter(nid=nid).exists():
-                    form.add_error("nid", 'NID already taken')
-                else:
-                    current_user_detail = form.save(commit=False)
-                    current_user_detail.password = make_password( password )
-                    try:
-                        current_user_detail.save()
-                        login(request, current_user_detail )
-                        return redirect('/accounts/home/')
-                    except ValidationError as e:
-                        for k in e:
-                            form.add_error(k, e[k])
-                        return render(request, self.template_name, {'form': form })
-                
-                return render(request, self.template_name, {'form': form })
-            else:
-                return render(request, self.template_name, {'form': form })
-            
+    
 
 
 class MyProfile(views.View):
@@ -310,14 +385,10 @@ class ForgotPassword(views.View):
         aha=0
 
 
-
-            
-
 class ShowProfileDetail(views.View):
     def get(self, request, user_id):
         user_detail = UserDetail.objects.get(pk=user_id)
         return render(request, "profile.html", { 'user_detail': user_detail})
-
 
 
 ############################ update profile ############################
