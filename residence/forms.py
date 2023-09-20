@@ -181,6 +181,6 @@ class RoomSearchForm(forms.Form):
 
         city_choice = [("", "choose city")]
         for i in City.objects.all():
-            city_choice += [(i.id, i.city)]
+            city_choice += [(i.id, i.name)]
         
         self.fields['city'] = forms.ChoiceField(choices=city_choice, label='id_city' , required=True)

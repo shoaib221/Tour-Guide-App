@@ -7,17 +7,27 @@ from .serializers import *
 from accounts.models import *
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate, logout
+from django import views
 
 class Test(APIView):
 
     def get(self, request):
-        return Response( { 'message': 'Hello Get test' } , status=status.HTTP_200_OK )
+        if request.user.is_authenticated:
+            return Response( { 'message': ' Get authenticated ' }, status=status.HTTP_200_OK )
+        else:
+            return Response( { 'message': 'Get unauth ' } , status=status.HTTP_200_OK )
     
     def post(self, request):
-        return Response( { 'message': 'Hello Post test' } , status=status.HTTP_200_OK )
+        if request.user.is_authenticated:
+            return Response( { 'message': ' Post authenticated ' }, status=status.HTTP_200_OK )
+        else:
+            return Response( { 'message': 'Post unauth' } , status=status.HTTP_200_OK )
     
     def put(self, request):
-        return Response( { 'message': 'Hello Put test' } , status=status.HTTP_200_OK )
+        if request.user.is_authenticated:
+            return Response( { 'message': ' Put authenticated ' }, status=status.HTTP_200_OK )
+        else:
+            return Response( { 'message': 'Put unauth' } , status=status.HTTP_200_OK )
 
 
 ###########################################  accounts  ###########################################
@@ -93,9 +103,6 @@ class MyRegister(APIView):
             
 
 class MyLogin(APIView):
-
-    template_name = "login.html"
-    form_class = LoginSerializer
 
     def post(self, request):
         
@@ -212,7 +219,11 @@ class MyHouse(APIView):
         if request.user.is_authenticated:
             qs = House.objects.filter( user_detail__username=request.user.username )
             serializer = HouseSerializer(qs, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            context = {
+                'houses': serializer.data
+            }
+
+            return Response( context , status=status.HTTP_200_OK)
         else:
             context = {
                 'message': 'Log in first'
@@ -220,7 +231,6 @@ class MyHouse(APIView):
             return Response(context, status=status.HTTP_200_OK)
         
 
-        
 class AddHouse(APIView) :
 
     def get(self, request):
@@ -254,8 +264,8 @@ class AddHouse(APIView) :
                 house.name = serializer.validated_data['name']
                 house.address = serializer.validated_data['address']
                 house.city = serializer.validated_data['city']
-                house.country = serializer.validated_data['country']
                 house.description = serializer.validated_data['description']
+                house.country = house.city.country
 
 
                 try:
@@ -286,8 +296,187 @@ class AddHouse(APIView) :
             return Response(context, status=status.HTTP_200_OK)
 
 
+class HouseDetail(APIView):
 
-#########################  Room          #########################################
+    def get(self, request, house_id):
+
+        if request.user.is_authenticated:
+            try:
+                house = House.objects.get(id=house_id)
+            except:
+                context = {
+                    'message': 'No such house of this id',
+                    'house_id': house_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = HouseSerializer(house)
+
+            rooms = Room.objects.filter( house=house )
+
+            rooms_serializer = RoomSerializer(rooms, many=True)
+
+            context = {
+                'house_id': house_id,
+                'house': serializer.data,
+                'rooms': rooms_serializer.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+
+#########################     Room          #########################################
+
+class AddRoom(APIView):
+
+    def get(self, request, house_id):
+
+        if request.user.is_authenticated:
+            
+
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            try:
+                house = House.objects.get( id=house_id )
+            except:
+                context = {
+                    'message': 'No such house of this id',
+                    'house_id': house_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            if house.user_detail != user_detail:
+                context = {
+                    'message': 'You are not the owner of this house',
+                    'house_id': house_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = RoomSerializer()
+
+            context = {
+                'serializer': serializer.data,
+            }
+
+            return Response(context, status=status.HTTP_200_OK)
+
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        
+    def post(self, request, house_id):
+
+        if request.user.is_authenticated:
+            
+
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            try:
+                house = House.objects.get( id=house_id )
+            except:
+                context = {
+                    'message': 'No such house of this id',
+                    'house_id': house_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            if house.user_detail != user_detail:
+                context = {
+                    'message': 'You are not the owner of this house',
+                    'house_id': house_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = RoomSerializer( request.data )
+
+            if serializer.is_valid():
+                room = Room()
+                room.name = serializer.validated_data['name']
+                room.house = house
+                room.beds = serializer.validated_data['beds']
+                room.has_ac = serializer.validated_data['has_ac']
+                room.price = serializer.validated_data['price']
+                room.description = serializer.validated_data['description']
+
+                try:
+                    room.full_clean()
+                    room.save()
+                    context = {
+                        'message': 'successfully created',
+                        'serializer': serializer.data
+                    }
+                    return Response(context , status=status.HTTP_201_CREATED)
+                except ValidationError as ve :
+                    context = {
+                        'errors': ve.message_dict,
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                context = {
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_200_OK)
+
+
+class RoomDetail(APIView):
+    pass
+
+
+###########################   Unavailability   #########################################
+
+class CreateUnavailability(APIView):
+    pass
+
+
+class DeleteUnavailability(APIView):
+    pass
+
+
+###############################   Booking   ###########################################
+
+class HouseBookings(APIView):
+    pass
+
+
+class RoomBookings(APIView):
+    pass
+
+class BookingDetail(APIView):
+    pass
+
+class MyBookings(APIView):
+    pass
+
+class BookRooms(APIView):
+    pass
+
+
+###############################   Search   ###########################################
+
+class SearchRoom(APIView):
+    pass
+
+##########################   cart   #############################################
+
+class MyCart(APIView):
+    pass
+
+class AddToCart(APIView):
+    pass
+
+
 '''
 
 class AllHouse(APIView):

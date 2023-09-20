@@ -40,4 +40,9 @@ class MyProfileSerializer(serializers.ModelSerializer):
 class HouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = House
-        fields = [ 'name', 'address', 'city', 'description' ]
+        fields = '__all__'
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = '__all__'
