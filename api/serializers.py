@@ -79,3 +79,14 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = '__all__'
     
+#######################################################################
+
+class RoomBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoomBooking
+        fields = '__all__'
+
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = '__all__'

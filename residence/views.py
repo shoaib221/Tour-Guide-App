@@ -7,7 +7,7 @@ from pyexpat.errors import messages
 from django.forms import ValidationError
 from django.shortcuts import render, redirect
 from django import views
-from .models import House, Room
+from .models import *
 from .forms import HouseForm, RoomForm
 from accounts.models import UserDetail
 
@@ -317,54 +317,6 @@ class MyCart(views.View):
 			messages.info(request, 'You must log in first')
 			return redirect('/accounts/')
 
-
-######################################   RoomBookings    ####################################
-
-
-from .models import Booking, House, RoomBooking
-
-
-
-
-
-
-class MyBookings(views.View):
-	template_name = "my_booking.html"
-	
-	def get(self, request):
-		if request.user.is_authenticated:
-			bookings = Booking.objects.filter(guest__username=request.user.username).order_by("-booking_time")
-			return render(request, self.template_name, {"orders": bookings})
-		else:
-			messages.info(request, 'You must log in first')
-			return redirect("/accounts/")
-
-
-
-class BookingDetail(views.View):
-
-	template_name = "booking_detail.html"
-
-	def get(self, request, id):
-		if request.user.is_authenticated:
-			booking = Booking.objects.get(id=id)
-			if booking.guest.username == request.user.username or booking.house.user_detail.username == request.user.username :
-				qs = RoomBooking.objects.filter(booking_id=id)
-				rooms = []
-				for x in qs:
-					rooms.append(x.room)
-				return render(request, self.template_name, { "booking": booking, "rooms": rooms })
-			else:
-				return redirect("/accounts/")
-		else:
-			return redirect("/login_required/")
-		
-
-
-
-
-
-		
 class BookRooms(views.View):
 	template_name = "message.html"
 
@@ -425,3 +377,44 @@ class BookRooms(views.View):
 			for x in qs:
 				x.delete()
             
+
+######################################   RoomBookings    ####################################
+
+
+class MyBookings(views.View):
+	template_name = "my_booking.html"
+	
+	def get(self, request):
+		if request.user.is_authenticated:
+			bookings = Booking.objects.filter(guest__username=request.user.username).order_by("-booking_time")
+			return render(request, self.template_name, {"orders": bookings})
+		else:
+			messages.info(request, 'You must log in first')
+			return redirect("/accounts/")
+
+
+
+class BookingDetail(views.View):
+
+	template_name = "booking_detail.html"
+
+	def get(self, request, id):
+		if request.user.is_authenticated:
+			booking = Booking.objects.get(id=id)
+			if booking.guest.username == request.user.username or booking.house.user_detail.username == request.user.username :
+				qs = RoomBooking.objects.filter(booking_id=id)
+				rooms = []
+				for x in qs:
+					rooms.append(x.room)
+				return render(request, self.template_name, { "booking": booking, "rooms": rooms })
+			else:
+				return redirect("/accounts/")
+		else:
+			return redirect("/login_required/")
+		
+
+
+
+
+
+		
