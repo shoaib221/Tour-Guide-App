@@ -325,68 +325,8 @@ from .models import Booking, House, RoomBooking
 
 
 
-class BookRooms(views.View):
 
-	def get(self, request):
-		if request.user.is_authenticated:
-			rows = Cart.objects.filter(user_detail__username=request.user.username)
-			rooms=[]
-			for x in rows:
-				rooms.append(x.room.id)
-			guest=UserDetail.objects.get(username=request.user.username)
 
-			if( len(rooms)<1 ) :
-				return render(request, 'message.html', {'message': 'failed'} )
-
-			house=House.objects.get(id=rows[0].house.id)
-
-			house_id = set()
-
-			for x in rows:
-				house_id.add(x.house.id)
-
-			if( len(house_id)>1 ):
-				return render(request, 'message.html', {'message': 'failed'} )
-			
-			total_price=0
-			for x in rows:
-				total_price += x.price
-			
-			now_time=datetime.datetime.now()
-			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=now_time )
-
-			try:
-				booking.full_clean()
-				booking.save()
-				temp = []
-				for x in rows:
-					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price, start_date=x.book_from, end_date=x.book_to )
-					try:
-						room_booking.full_clean()
-						room_booking.save()
-						temp.append(room_booking)
-					except ValidationError as e:
-						for t in temp:
-							t.delete()
-						return render(request, 'message.html', {'message': 'failed'} )
-				
-				for x in rows:
-					new_unavail = RoomUnavailable( room=x.room, from_day=x.book_from, to_day=x.book_to, house=x.room.house, booked=True  ) 
-					new_unavail.save()
-				
-				cart_elements = Cart.objects.filter(user_detail__username=request.user.username)
-				for x in cart_elements:
-					x.delete()
-				return redirect("/residence/my_booking/")
-			
-			except ValidationError as e:
-				return render(request, 'message.html', {'message': 'failed'} )
-			
-		else:
-			messages.info(request, 'You must log in first')
-			return redirect('/accounts/')
-		
-		
 
 class MyBookings(views.View):
 	template_name = "my_booking.html"
@@ -418,3 +358,70 @@ class BookingDetail(views.View):
 				return redirect("/accounts/")
 		else:
 			return redirect("/login_required/")
+		
+
+
+
+
+
+		
+class BookRooms(views.View):
+	template_name = "message.html"
+
+	def get(self, request):
+		if request.user.is_authenticated:
+			user_detail = UserDetail.objects.get(username=request.user.username)
+			qs = Cart.objects.filter(user_detail=user_detail)
+
+			if( len(qs)<1 ):
+				context = { 'message': 'Cart is empty' }
+				return render(request, self.template_name, context )
+			
+			houses = set()
+			for x in qs:
+				houses.add(x.house.id)
+
+			if (len(houses) > 1):
+				context = { 'message': 'All rooms must be from same house' }
+				return render(request, self.template_name, context )
+			
+			booking01 = Booking()
+			booking01.guest = user_detail
+			booking01.house = qs[0].house
+			booking01.total_price = 0
+			booking01.booking_time = datetime.datetime.now()
+
+			rooms = []
+			try:
+				booking01.full_clean()
+				booking01.save()
+				
+				for x in qs:
+					room_booking = RoomBooking()
+					room_booking.booking = booking01
+					room_booking.room = x.room
+					room_booking.price = x.price
+					room_booking.start_date = x.book_from
+					room_booking.end_date = x.book_to
+
+					room_booking.full_clean()
+					booking01.total_price += room_booking.price
+					rooms.append( room_booking )
+
+			except ValidationError as ve:
+				context = {
+					'message': 'Failed to create booking',
+					'errors': ve.message_dict
+				}
+				booking01.delete()
+				return render(request, self.template_name, context )
+
+			booking01.save()
+			for x in rooms:
+				x.save()
+				unavail = RoomUnavailable( room=x.room, house=x.room.house, from_day=x.start_date, to_day=x.end_date, booked=True )
+				unavail.save()
+			
+			for x in qs:
+				x.delete()
+            

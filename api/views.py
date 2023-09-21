@@ -718,6 +718,7 @@ class AddToCart(APIView):
             }
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
+
 class MyCart(APIView):
     
     def get(self, request):
@@ -740,78 +741,67 @@ class MyCart(APIView):
 ###############################   Booking   ###########################################
 import datetime
 
-class BookRooms(views.View):
+class BookRooms(APIView):
 
-	def get(self, request):
+    def get(self, request):
+        if request.user.is_authenticated:
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            qs = Cart.objects.filter( user_detail=user_detail )
 
-		if request.user.is_authenticated:
-			rows = Cart.objects.filter(user_detail__username=request.user.username)
-			rooms=[]
-			for x in rows:
-				rooms.append(x.room.id)
-			guest=UserDetail.objects.get(username=request.user.username)
-
-			if( len(rooms)<1 ) :
-				return Response( {'message': 'No element in cart'} )
-
-			house=House.objects.get(id=rows[0].house.id)
-
-			house_id = set()
-
-			for x in rows:
-				house_id.add(x.house.id)
-
-			if( len(house_id)>1 ):
-				return Response( {'message': 'Rooms from different houses are not allowed' } )
-			
-			total_price=0
-			for x in rows:
-				total_price += x.price
-			
-			now_time=datetime.datetime.now()
-			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=now_time )
-			
-		else:
-			return Response( {'message': 'Log in first'} )
-			
-			
-			
-			
-			
-			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=nowtime )
-
-			try:
-				booking.full_clean()
-				booking.save()
-				temp = []
-				for x in rows:
-					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price )
-					try:
-						room_booking.full_clean()
-						room_booking.save()
-						temp.append(room_booking)
-					except ValidationError as e:
-						for t in temp:
-							t.delete()
-						return render(request, 'message.html', {'message': 'failed'} )
-				
-				for x in rows:
-					new_unavail = RoomUnavailable( room=x.room, from_day=start_date, to_day=end_date, house=x.room.house, booked=True  ) 
-					new_unavail.save()
-				
-				cart_elements = Cart.objects.filter(user_detail__username=request.user.username)
-				for x in cart_elements:
-					x.delete()
-				return redirect("/residence/my_booking/")
-			
-			except ValidationError as e:
-				return render(request, 'message.html', {'message': 'failed'} )
+            if( len(qs)<1 ):
+                context = { 'message': 'Cart is empty' }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
             
+            houses = set()
+            for x in qs:
+                houses.add( x.house.id )
+
+            if( len(houses)>1 ):
+                context = { 'message': 'Cannot book rooms from different houses' }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            booking01 = Booking()
+            booking01.guest = user_detail
+            booking01.house = qs[0].house
+            booking01.booking_time = datetime.datetime.now()
+            booking01.total_price = 0
+
+            rooms= []
+
+            try:
+                booking01.full_clean()
+                booking01.save()
+
+                for x in qs:
+                    room_booking01 = RoomBooking( booking= booking01, room=x.room, start_date=x.book_from, end_date=x.book_to, price=x.price )
+                    room_booking01.full_clean()
+                    booking01.total_price += room_booking01.price
+                    rooms.append( room_booking01 )
+            except ValidationError as ve :
+                context = {
+                    'errors': ve.message_dict,
+                }
+                booking01.delete()
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)    
+            
+            booking01.save()
+            for x in rooms:
+                unavail = RoomUnavailable( room=x.room, house=x.room.house, from_day=x.start_date, to_day=x.end_date, booked=True )
+                unavail.save()
+                x.save()
+
+            for x in qs:
+                x.delete()
+
         else:
             context = {
                 'message': 'Log in first'
             }
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+			
+	
 
 
 
