@@ -9,6 +9,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import login, authenticate, logout
 from django import views
 
+
 class Test(APIView):
 
     def get(self, request):
@@ -314,12 +315,15 @@ class HouseDetail(APIView):
 
             rooms = Room.objects.filter( house=house )
 
-            rooms_serializer = RoomSerializer(rooms, many=True)
+            rooms_data = []
+
+            for room in rooms:
+                rooms_data.append( room.id )
 
             context = {
                 'house_id': house_id,
                 'house': serializer.data,
-                'rooms': rooms_serializer.data
+                'rooms_id': rooms_data
             }
             return Response(context, status=status.HTTP_200_OK)
         else:
@@ -390,7 +394,10 @@ class AddRoom(APIView):
                 }
                 return Response( context ,status=status.HTTP_400_BAD_REQUEST)
             
-            serializer = RoomSerializer( request.data )
+            print(request.data)
+            serializer = RoomSerializer( data=request.data )
+
+            
 
             if serializer.is_valid():
                 room = Room()
@@ -400,7 +407,7 @@ class AddRoom(APIView):
                 room.has_ac = serializer.validated_data['has_ac']
                 room.price = serializer.validated_data['price']
                 room.description = serializer.validated_data['description']
-
+                
                 try:
                     room.full_clean()
                     room.save()
@@ -415,7 +422,6 @@ class AddRoom(APIView):
                         'serializer': serializer.data
                     }
                     return Response(context, status=status.HTTP_400_BAD_REQUEST)
-
             else:
                 context = {
                     'errors': serializer.errors,
@@ -431,20 +437,383 @@ class AddRoom(APIView):
 
 
 class RoomDetail(APIView):
-    pass
+    
+    def get(self, request, room_id):
+            
+        if request.user.is_authenticated:
+            try:
+                room = Room.objects.get(id=room_id)
+            except:
+                context = {
+                    'message': 'No such room of this id',
+                    'room_id': room_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            room_serializer = RoomSerializer(room)
+
+            unavails = RoomUnavailable.objects.filter( room=room )
+
+            unavails_data = UnavailabilityDetailSerializer(unavails, many=True)
+
+            context = {
+                'room': room_serializer.data,
+                'unavails': unavails_data.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 ###########################   Unavailability   #########################################
 
 class CreateUnavailability(APIView):
-    pass
+    
+    def get(self, request, room_id):
+
+        if request.user.is_authenticated:
+            try:
+                room = Room.objects.get(id=room_id)
+            except:
+                context = {
+                    'message': 'No such room of this id',
+                    'room_id': room_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            user_detail = UserDetail.objects.get(username=request.user.username)
+
+            if( room.house.user_detail != user_detail ):
+                context = {
+                    'message': 'You are not the owner of this room',
+                    'house_id': room_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = UnavailabilitySerializer()
+            context = {
+                'serializer': serializer.data
+            }
+
+            return Response(context, status=status.HTTP_200_OK) 
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        
+    def post( self, request, room_id ):
+        if request.user.is_authenticated:
+            try:
+                room = Room.objects.get(id=room_id)
+            except:
+                context = {
+                    'message': 'No such room of this id',
+                    'room_id': room_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            user_detail = UserDetail.objects.get(username=request.user.username)
+
+            if( room.house.user_detail != user_detail ):
+                context = {
+                    'message': 'You are not the owner of this room',
+                    'house_id': room_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = UnavailabilitySerializer(data=request.data)
+
+            if serializer.is_valid():
+                unavail = RoomUnavailable()
+                unavail.house = room.house
+                unavail.room = room
+                unavail.from_day = serializer.validated_data['from_day']
+                unavail.to_day = serializer.validated_data['to_day']
+                unavail.booked = False
+
+                try:
+                    unavail.full_clean()
+                    unavail.save()
+                    context = {
+                        'message': 'successfully created',
+                        'serializer': serializer.data
+                    }
+                    return Response(context , status=status.HTTP_201_CREATED)
+                except ValidationError as ve :
+                    context = {
+                        'errors': ve.message_dict,
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                context = {
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteUnavailability(APIView):
-    pass
+    
+    def get(self, request, id):
+
+        if request.user.is_authenticated:
+            try:
+                unavail = RoomUnavailable.objects.get(id=id)
+            except:
+                context = {
+                    'message': 'No such unavailability of this id',
+                    'id': id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            user_detail = UserDetail.objects.get(username=request.user.username)
+
+            if( unavail.house.user_detail != user_detail ):
+                context = {
+                    'message': 'You are not the owner of this room',
+                    'id': id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            if not unavail.booked:
+                unavail.delete()
+            
+            context = {
+                'message': 'success',
+            }
+            return Response(context, status=status.HTTP_200_OK) 
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
+###############################   Search   ###########################################
+
+class SearchRoom(APIView):
+    
+    def get(self, request):
+            
+        if request.user.is_authenticated:
+            serializer = SearchRoomSerializer()
+            context = {
+                'serializer': serializer.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        
+    def post(self, request):
+        if request.user.is_authenticated:
+            serializer = SearchRoomSerializer(data=request.data)
+            if serializer.is_valid():
+                city = serializer.validated_data['city']
+                from_day = serializer.validated_data['from_day']
+                to_day = serializer.validated_data['to_day']
+
+                qs = RoomUnavailable.objects.all()
+                qs = qs.filter(house__city=city)
+                qs = qs.filter(from_day__lte=to_day, to_day__gte=from_day)
+
+                unavail = set()
+                for x in qs:
+                    unavail.add(x.room.id)
+
+                ase = Room.objects.all()
+                ase = ase.filter(house__city=city)
+
+                ans = []
+                for x in ase:
+                    if x.id not in unavail:
+                        ans.append( x )
+                
+                rooms_serializer = RoomSerializer(ans, many=True)
+
+                context = {
+                    'rooms': rooms_serializer.data
+                }
+                return Response(context, status=status.HTTP_200_OK)
+            else:
+                context = {
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+##########################   cart   #############################################
+
+class AddToCart(APIView):
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            serializer = AddCart()
+            context = {
+                'serializer': serializer.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request):
+        if request.user.is_authenticated:
+            serializer = AddCart(data=request.data)
+            if serializer.is_valid():
+                room_id = serializer.validated_data['room_id']
+                room = Room.objects.get(id=room_id)
+                user_detail = UserDetail.objects.get(username=request.user.username)
+                cart = Cart()
+                cart.user_detail = user_detail
+                cart.room = room
+                cart.house = room.house
+                cart.book_from = serializer.validated_data['book_from']
+                cart.book_to = serializer.validated_data['book_to']
+                number_of_days = (cart.book_to - cart.book_from).days
+                cart.price = room.price * number_of_days
+
+                try:
+                    cart.full_clean()
+                    cart.save()
+                    context = {
+                        'message': 'successfully added to cart',
+                        'serializer': serializer.data
+                    }
+                    return Response(context , status=status.HTTP_201_CREATED)
+                except ValidationError as ve :
+                    context = {
+                        'errors': ve.message_dict,
+                        'serializer': serializer.data
+                    }
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                context = {
+                    'errors': serializer.errors,
+                    'serializer': serializer.data
+                }
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+class MyCart(APIView):
+    
+    def get(self, request):
+
+        if request.user.is_authenticated:
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            qs = Cart.objects.filter( user_detail=user_detail )
+            serializer = CartSerializer(qs, many=True)
+            context = {
+                'carts': serializer.data
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
 ###############################   Booking   ###########################################
+import datetime
+
+class BookRooms(views.View):
+
+	def get(self, request):
+
+		if request.user.is_authenticated:
+			rows = Cart.objects.filter(user_detail__username=request.user.username)
+			rooms=[]
+			for x in rows:
+				rooms.append(x.room.id)
+			guest=UserDetail.objects.get(username=request.user.username)
+
+			if( len(rooms)<1 ) :
+				return Response( {'message': 'No element in cart'} )
+
+			house=House.objects.get(id=rows[0].house.id)
+
+			house_id = set()
+
+			for x in rows:
+				house_id.add(x.house.id)
+
+			if( len(house_id)>1 ):
+				return Response( {'message': 'Rooms from different houses are not allowed' } )
+			
+			total_price=0
+			for x in rows:
+				total_price += x.price
+			
+			now_time=datetime.datetime.now()
+			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=now_time )
+			
+		else:
+			return Response( {'message': 'Log in first'} )
+			
+			
+			
+			
+			
+			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=nowtime )
+
+			try:
+				booking.full_clean()
+				booking.save()
+				temp = []
+				for x in rows:
+					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price )
+					try:
+						room_booking.full_clean()
+						room_booking.save()
+						temp.append(room_booking)
+					except ValidationError as e:
+						for t in temp:
+							t.delete()
+						return render(request, 'message.html', {'message': 'failed'} )
+				
+				for x in rows:
+					new_unavail = RoomUnavailable( room=x.room, from_day=start_date, to_day=end_date, house=x.room.house, booked=True  ) 
+					new_unavail.save()
+				
+				cart_elements = Cart.objects.filter(user_detail__username=request.user.username)
+				for x in cart_elements:
+					x.delete()
+				return redirect("/residence/my_booking/")
+			
+			except ValidationError as e:
+				return render(request, 'message.html', {'message': 'failed'} )
+            
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class HouseBookings(APIView):
     pass
@@ -459,22 +828,8 @@ class BookingDetail(APIView):
 class MyBookings(APIView):
     pass
 
-class BookRooms(APIView):
-    pass
 
 
-###############################   Search   ###########################################
-
-class SearchRoom(APIView):
-    pass
-
-##########################   cart   #############################################
-
-class MyCart(APIView):
-    pass
-
-class AddToCart(APIView):
-    pass
 
 
 '''

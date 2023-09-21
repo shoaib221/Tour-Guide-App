@@ -33,7 +33,7 @@ class Room(models.Model):
     house = models.ForeignKey(House, on_delete=models.CASCADE, blank=False, default=None)
     beds= models.IntegerField(blank=False)
     has_ac = models.BooleanField(default=False, blank=False)
-    price= models.FloatField(blank=False)
+    price_per_day = models.FloatField(blank=False)
     description = models.CharField(max_length=255, null=True, blank=True, default=None)
 
     class Meta:
@@ -66,7 +66,7 @@ class Booking(models.Model):
 class RoomBooking(models.Model):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, blank=False, default=None )
     room = models.ForeignKey(Room, on_delete=models.CASCADE, blank=False, default=None )
-    price_per_day = models.FloatField( blank=False,  default=None )
+    price = models.FloatField( blank=False,  default=None )
     start_date = models.DateField( blank=False, default=None )
     end_date = models.DateField( blank=False, default=None )
 
@@ -78,5 +78,5 @@ class Cart(models.Model):
     house = models.ForeignKey(House, on_delete=models.CASCADE, blank=False, default=None)
     book_from = models.DateField( blank=False )
     book_to = models.DateField( blank=False )
-    price_per_day = models.FloatField( blank=False, default=None )
+    price = models.FloatField( blank=False, default=None )
 

@@ -78,7 +78,7 @@ class HouseDetail(views.View):
 
 
 class AddRoom(views.View):
-	template_name = 'add_space.html'
+	template_name = 'add_room.html'
 	form_class = RoomForm
 	
 	def get(self, request, id):
@@ -271,7 +271,6 @@ class SearchRoom(views.View):
 from .models import Cart
 
 
-
 class AddToCart(views.View):
 
 	def get(self, request, room_id):
@@ -280,20 +279,30 @@ class AddToCart(views.View):
 			user_detail = UserDetail.objects.get(username=request.user.username)
 			start_date = request.GET.get('start_date')
 			end_date = request.GET.get('end_date')
-			obj = Cart( user_detail=user_detail, room=room, house=room.house, book_from=start_date, book_to=end_date, price=room.price )
+			cart = Cart()
+
+			cart = Cart()
+			cart.user_detail = user_detail
+			cart.room = room
+			cart.house = room.house
+			cart.book_from = start_date
+			cart.book_to = end_date
+			number_of_days = (cart.book_to - cart.book_from).days
+			cart.price_per_day = room.price * number_of_days
 			try:
-				obj.full_clean()
-				obj.save()
+				cart.full_clean()
+				cart.save()
 				print("added to cart")
 				return render(request, 'message.html', {'message': 'Added to cart'} )
-			except ValidationError as e:
-				return render(request, 'message.html', {'message': 'failed'} )
+			except ValidationError as ve:
+				context = {
+					'message': 'Failed to add to cart',
+					'errors': ve.message_dict
+				}
+				return render(request, 'message.html', context )
 		else:
 			messages.info(request, 'You must log in first')
 			return redirect('/accounts/')
-		
-from .models import Cart
-
 
 
 class MyCart(views.View):
@@ -325,21 +334,33 @@ class BookRooms(views.View):
 			for x in rows:
 				rooms.append(x.room.id)
 			guest=UserDetail.objects.get(username=request.user.username)
+
+			if( len(rooms)<1 ) :
+				return render(request, 'message.html', {'message': 'failed'} )
+
 			house=House.objects.get(id=rows[0].house.id)
-			start_date = rows[0].book_from
-			end_date = rows[0].book_to
+
+			house_id = set()
+
+			for x in rows:
+				house_id.add(x.house.id)
+
+			if( len(house_id)>1 ):
+				return render(request, 'message.html', {'message': 'failed'} )
+			
 			total_price=0
 			for x in rows:
 				total_price += x.price
+			
 			now_time=datetime.datetime.now()
-			booking = Booking( guest=guest, house=house, book_from=start_date, book_to=end_date, total_price=total_price, booking_time=now_time )
+			booking = Booking( guest=guest, house=house, total_price=total_price, booking_time=now_time )
 
 			try:
 				booking.full_clean()
 				booking.save()
 				temp = []
 				for x in rows:
-					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price )
+					room_booking = RoomBooking( booking=booking, room=x.room, price=x.price, start_date=x.book_from, end_date=x.book_to )
 					try:
 						room_booking.full_clean()
 						room_booking.save()
@@ -350,7 +371,7 @@ class BookRooms(views.View):
 						return render(request, 'message.html', {'message': 'failed'} )
 				
 				for x in rows:
-					new_unavail = RoomUnavailable( room=x.room, from_day=start_date, to_day=end_date, house=x.room.house, booked=True  ) 
+					new_unavail = RoomUnavailable( room=x.room, from_day=x.book_from, to_day=x.book_to, house=x.room.house, booked=True  ) 
 					new_unavail.save()
 				
 				cart_elements = Cart.objects.filter(user_detail__username=request.user.username)

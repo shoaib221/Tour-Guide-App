@@ -30,7 +30,7 @@ class HouseForm(forms.ModelForm):
 class RoomForm(forms.ModelForm):
     class Meta:
         model = Room
-        fields = ['name', 'beds', 'has_ac', 'price', 'description']
+        fields = ['name', 'beds', 'has_ac', 'price_per_day', 'description']
 
     def __init__(self, *args, **kwargs):
         # print("SpaceForm")
@@ -47,8 +47,7 @@ class RoomForm(forms.ModelForm):
         if kwargs.get("instance", None):
             instance = kwargs.get("instance", None)
             residence_id = instance.id
-            # print(instance, type(instance))
-#        self.fields['space_type'].queryset = SpaceType.objects.filter( residence_id=residence_id)
+            # print(instance, type(instance)) self.fields['space_type'].queryset = SpaceType.objects.filter( residence_id=residence_id)
 
     def clean(self):
         pass

@@ -21,7 +21,7 @@ urlpatterns = [
     path("my_bookings/", views.MyBookings.as_view() ),
     path("search_vacancy/", views.SearchRoom.as_view() ),
     path("my_cart/", views.MyCart.as_view() ),
-    path("add_to_cart/<int:room_id>/", views.AddToCart.as_view() ),
+    path("add_to_cart/", views.AddToCart.as_view() ),
     path("book/", views.BookRooms.as_view() ),
 ]
 
