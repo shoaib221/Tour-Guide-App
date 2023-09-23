@@ -20,7 +20,8 @@ class Test(APIView):
     
     def post(self, request):
         if request.user.is_authenticated:
-            return Response( { 'message': ' Post authenticated ' }, status=status.HTTP_200_OK )
+            request.data['message'] = ' Post authenticated '
+            return Response( request.data, status=status.HTTP_200_OK )
         else:
             return Response( { 'message': 'Post unauth' } , status=status.HTTP_200_OK )
     
@@ -325,6 +326,13 @@ class HouseDetail(APIView):
                 'house': serializer.data,
                 'rooms_id': rooms_data
             }
+
+            house_bookings = Booking.objects.filter( house=house )
+
+            house_srz = BookingSerializer(house_bookings, many=True)
+
+            context['bookings']=house_srz.data
+
             return Response(context, status=status.HTTP_200_OK)
         else:
             context = {
@@ -456,10 +464,20 @@ class RoomDetail(APIView):
 
             unavails_data = UnavailabilityDetailSerializer(unavails, many=True)
 
+            room_bookings= RoomBooking.objects.filter( room=room )
+
+            room_srz = RoomBookingSerializer(room_bookings, many=True)
+
+            
+
             context = {
                 'room': room_serializer.data,
                 'unavails': unavails_data.data
             }
+
+            if( room.house.user_detail.username == request.user.username ):
+                context['room_bookings'] = room_srz.data
+
             return Response(context, status=status.HTTP_200_OK)
         else:
             context = {
@@ -891,23 +909,19 @@ class RoomBookings(APIView):
 
 class MyBookings(APIView):
 
+
+
     def get(self, request):
         if request.user.is_authenticated:
             
             user_detail = UserDetail.objects.get(username=request.user.username)
             qs = Booking.objects.filter( guest=user_detail )
             
-            context = []
+            context = {}
 
-            for x in qs:
-                row={}
-                serializer = BookingSerializer(x)
-                row['booking'] = serializer.data
-                rooms = RoomBooking.objects.filter( booking=x )
-                rooms_serializer = RoomBookingSerializer(rooms, many=True)
-                row['room_bookings'] = rooms_serializer.data
-                context.append( row )
+            booking_srz = BookingSerializer(qs, many=True)
 
+            context[ 'bookings' ]=booking_srz.data
             
             return Response(context, status=status.HTTP_200_OK) 
         else:
@@ -918,3 +932,43 @@ class MyBookings(APIView):
 
 
 		
+class BookingDetail(APIView):
+
+    def get(self, request, booking_id):
+        if request.user.is_authenticated:
+            
+            user_detail = UserDetail.objects.get(username=request.user.username)
+            try:
+                booking = Booking.objects.get( id=booking_id )
+            except:
+                context = {
+                    'message': 'No such booking of this id',
+                    'booking_id': booking_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            if booking.guest != user_detail or booking.house.user_detail != user_detail :
+                context = {
+                    'message': 'You are associated with this booking',
+                    'booking_id': booking_id
+                }
+                return Response( context ,status=status.HTTP_400_BAD_REQUEST)
+            
+            context = {}
+
+            booking_srz = BookingSerializer(booking)
+
+            context[ 'booking' ]=booking_srz.data
+
+            rooms = RoomBooking.objects.filter( booking=booking )
+
+            rooms_srz = RoomBookingSerializer(rooms, many=True)
+
+            context[ 'room_bookings' ]=rooms_srz.data
+            
+            return Response(context, status=status.HTTP_200_OK) 
+        else:
+            context = {
+                'message': 'Log in first'
+            }
+            return Response(context, status=status.HTTP_400_BAD_REQUEST)

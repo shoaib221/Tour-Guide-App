@@ -15,6 +15,26 @@ from .forms import CreateUserForm, LoginForm, PasswordChangeForm
 from .models import UserDetail, City, Country
 from django.contrib.auth.hashers import make_password, check_password
 
+class Test(views.View):
+
+    def get(self, request):
+        if request.user.is_authenticated:   
+              
+            return render(request, "test.html")
+        else:
+            return redirect(request, "test.html" )
+        
+    def post(self, request):
+        if request.user.is_authenticated:        
+            return render(request, "test.html")
+        else:
+            return redirect(request, "test.html" )
+        
+    def put(self, request):
+        if request.user.is_authenticated:        
+            return render(request, "test.html")
+        else:
+            return redirect(request, "test.html" )
 
 
 class MyHome(views.View):

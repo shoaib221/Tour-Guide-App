@@ -26,5 +26,6 @@ urlpatterns = [
     path("bookings/house/<int:house_id>/", views.HouseBookings.as_view() ),
     path("bookings/room/<int:room_id>/", views.RoomBookings.as_view() ),
     path("my_bookings/", views.MyBookings.as_view() ),
+    path( "booking_detail/<int:booking_id>/", views.BookingDetail.as_view() ),
 ]
 

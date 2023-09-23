@@ -16,4 +16,5 @@ urlpatterns = [
     path( "", views.MyLogin.as_view() ),
     path( "change_password/", views.ChangePassword.as_view() ),
     path( "forgot_password/", views.ForgotPassword.as_view(), name='forgot password'),
+    path("test/", views.Test.as_view(), name="test")
 ]
